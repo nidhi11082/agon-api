@@ -1,46 +1,32 @@
 from flask import Flask, request, jsonify
-import re
+import anthropic
+import os
 
 app = Flask(__name__)
+client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
+SYSTEM_PROMPT = """You are a precise rule-following calculator. 
+The user will give you a query with rules and an input number.
+Apply ALL rules in order exactly as stated.
+Respond with ONLY the final output value — no explanation, no extra text, no punctuation.
+Just the raw answer like: FIZZ or 15 or whatever the result is."""
 
 @app.route("/", methods=["POST"])
 def solve():
     data = request.get_json()
     query = data.get("query", "")
 
-    q = query.lower()
+    message = client.messages.create(
+        model="claude-opus-4-5",
+        max_tokens=64,
+        system=SYSTEM_PROMPT,
+        messages=[
+            {"role": "user", "content": query}
+        ]
+    )
 
-    # ✅ STRICT extraction of ONLY input number
-    match = re.search(r'input\s*number\s*:?\s*(\d+)', q)
-
-    if match:
-        num = int(match.group(1))
-    else:
-        # fallback → ignore rule numbers (take LAST meaningful number)
-        nums = re.findall(r'\d+', q)
-        num = int(nums[-1]) if nums else 0
-
-    # Rule 1
-    if num % 2 == 0:
-        result = num * 2
-    else:
-        result = num + 10
-
-    # Rule 2
-    if result > 20:
-        result -= 5
-    else:
-        result += 3
-
-    # Rule 3
-    if result % 3 == 0:
-        answer = "FIZZ"
-    else:
-        answer = str(result)
-
-    # ✅ EXACT output (critical)
-    return jsonify({"output": answer.strip()})
-
+    answer = message.content[0].text.strip()
+    return jsonify({"output": answer})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
