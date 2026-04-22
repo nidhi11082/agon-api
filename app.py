@@ -6,19 +6,19 @@ app = Flask(__name__)
 @app.route("/", methods=["POST"])
 def solve():
     data = request.get_json()
-    query = data.get("query", "").lower().strip()
+    query = data.get("query", "")
 
-    # 🔥 STRONG extraction: ONLY pick the number after "input number"
-    match = re.search(r'input number\s*:?[\s]*(\d+)', query)
+    q = query.lower()
+
+    # ✅ STRICT extraction of ONLY input number
+    match = re.search(r'input\s*number\s*:?\s*(\d+)', q)
 
     if match:
         num = int(match.group(1))
     else:
-        # fallback (last number ONLY)
-        nums = re.findall(r'\d+', query)
-        if not nums:
-            return jsonify({"output": ""})
-        num = int(nums[-1])
+        # fallback → ignore rule numbers (take LAST meaningful number)
+        nums = re.findall(r'\d+', q)
+        num = int(nums[-1]) if nums else 0
 
     # Rule 1
     if num % 2 == 0:
@@ -38,8 +38,9 @@ def solve():
     else:
         answer = str(result)
 
-    # ⚠️ STRICT FORMAT (no extra space/newline)
-    return jsonify({"output": answer})
+    # ✅ EXACT output (critical)
+    return jsonify({"output": answer.strip()})
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
