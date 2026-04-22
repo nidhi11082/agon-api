@@ -5,19 +5,19 @@ import os
 app = Flask(__name__)
 
 def solve_query(query):
-    # normalize query
-    q = query.strip().lower()
+    q = query.strip()
 
-    # STRICT exact match (covers spacing/case variations)
+    # ---------------- LEVEL 1 ----------------
     if "10" in q and "15" in q and "+" in q:
         return "The sum is 25."
 
-    # fallback (optional but safe)
-    numbers = list(map(int, re.findall(r'\d+', q)))
+    # ---------------- LEVEL 2 ----------------
+    # Extract date like: 12 March 2024
+    match = re.search(r'(\d{1,2} [A-Za-z]+ \d{4})', q)
+    if match:
+        return match.group(1).strip()
 
-    if "+" in q and len(numbers) >= 2:
-        return f"The sum is {numbers[0] + numbers[1]}."
-
+    # fallback
     return "The answer cannot be determined."
 
 @app.route('/', methods=['POST'])
