@@ -9,31 +9,32 @@ def solve():
     data = request.get_json(force=True)
     query = data.get("query", "")
 
-    pairs = []
+    # STEP 1: Extract only the actual math part
+    # Look for pattern like: "What is 13 + 7"
+    match = re.search(r'(\d+)\s*([\+\-\*/])\s*(\d+)', query)
 
-    # Pattern 1: "Alice scored 80"
-    pairs += re.findall(r'([A-Z][a-z]+)\s+(?:scored|got|has)\s+(\d+)', query)
-
-    # Pattern 2: "Alice 80"
-    pairs += re.findall(r'([A-Z][a-z]+)\s+(\d+)', query)
-
-    # Pattern 3: "80 Alice"
-    reverse_pairs = re.findall(r'(\d+)\s+([A-Z][a-z]+)', query)
-    pairs += [(name, num) for num, name in reverse_pairs]
-
-    if not pairs:
+    if not match:
         return {"output": ""}
 
-    # Remove duplicates (important)
-    unique = {}
-    for name, num in pairs:
-        unique[name] = int(num)
+    a = int(match.group(1))
+    op = match.group(2)
+    b = int(match.group(3))
 
-    # Find highest
-    winner = max(unique.items(), key=lambda x: x[1])[0]
+    # STEP 2: Compute result safely
+    if op == "+":
+        result = a + b
+    elif op == "-":
+        result = a - b
+    elif op == "*":
+        result = a * b
+    elif op == "/":
+        result = a // b if b != 0 else 0
+    else:
+        result = 0
 
+    # STEP 3: Return ONLY the number (important!)
     return {
-        "output": winner
+        "output": str(result)
     }
 
 if __name__ == "__main__":
