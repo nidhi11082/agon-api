@@ -9,17 +9,14 @@ def solve():
     data = request.get_json(force=True)
     query = data.get("query", "")
 
-    q = query.lower()
+    # Extract all numbers
+    numbers = list(map(int, re.findall(r'\d+', query)))
 
-    # ---- LEVEL 4 (ROBUST) ----
-    if "sum" in q and "even" in q:
-        numbers = list(map(int, re.findall(r'\d+', q)))
-        even_sum = sum(n for n in numbers if n % 2 == 0)
+    # Sum only even numbers
+    even_sum = sum(n for n in numbers if n % 2 == 0)
 
-        # 🔒 STRICT OUTPUT (NO EXTRA CHARACTERS)
-        return jsonify({"output": str(even_sum)})
-
-    return jsonify({"output": ""})
+    # Return STRICT format (no spaces, no text)
+    return jsonify({"output": str(even_sum)})
 
 
 if __name__ == "__main__":
