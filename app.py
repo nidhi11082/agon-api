@@ -9,31 +9,29 @@ def solve():
     query = data.get("query", "")
     q = query.lower()
 
-    num = None
+    # 🔥 STEP 1: Find all numbers with positions
+    matches = list(re.finditer(r'\d+', q))
 
-    # 🔥 STEP 1: Extract number near keywords (MOST IMPORTANT)
-    patterns = [
-        r'input\s*number\s*:?\s*(\d+)',
-        r'number\s*:?\s*(\d+)',
-        r'given\s*(\d+)',
-        r'input\s*:?\s*(\d+)'
-    ]
+    candidates = []
 
-    for p in patterns:
-        match = re.search(p, q)
-        if match:
-            num = int(match.group(1))
-            break
+    for m in matches:
+        num = int(m.group())
+        start = m.start()
 
-    # 🔥 STEP 2: Fallback (ignore rule numbers)
-    if num is None:
-        nums = list(map(int, re.findall(r'\d+', q)))
-        filtered = [n for n in nums if n > 3]
+        # Check if this number is part of "rule"
+        context_before = q[max(0, start-10):start]
 
-        if filtered:
-            num = filtered[-1]
-        else:
-            num = nums[-1] if nums else 0
+        if "rule" not in context_before:
+            candidates.append(num)
+
+    # 🔥 STEP 2: Select correct number
+    if candidates:
+        # usually only one valid → pick it
+        num = candidates[0]
+    else:
+        # fallback → largest number (safe)
+        nums = [int(m.group()) for m in matches]
+        num = max(nums) if nums else 0
 
     # 🔥 STEP 3: Apply rules
 
