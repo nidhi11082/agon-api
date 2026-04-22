@@ -1,38 +1,44 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
 import re
-import os
 
 app = Flask(__name__)
 
-@app.route("/", methods=["POST"])
-def solve():
-    data = request.get_json(force=True)
-    query = data.get("query", "")
-
-    # STEP 1: Extract first number (robust)
-    nums = re.findall(r'\d+', query)
-    if not nums:
-        return {"output": ""}
-
-    num = int(nums[0])
-
-    # STEP 2: Rule 1
-    if num % 2 == 0:
-        num = num * 2
+def solve(query: str) -> str:
+    # Extract the input number from the query
+    match = re.search(r'input number[:\s]+(\d+)', query, re.IGNORECASE)
+    if not match:
+        # Try to find any number in the query
+        numbers = re.findall(r'\b(\d+)\b', query)
+        if not numbers:
+            return "unknown"
+        n = int(numbers[-1])
     else:
-        num = num + 10
+        n = int(match.group(1))
 
-    # STEP 3: Rule 2
-    if num > 20:
-        num = num - 5
+    # Rule 1
+    if n % 2 == 0:
+        result = n * 2
     else:
-        num = num + 3
+        result = n + 10
 
-    # STEP 4: Rule 3
-    if num % 3 == 0:
-        return {"output": "FIZZ"}
+    # Rule 2
+    if result > 20:
+        result -= 5
     else:
-        return {"output": str(num)}
+        result += 3
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    # Rule 3
+    if result % 3 == 0:
+        return "FIZZ"
+    else:
+        return str(result)
+
+@app.route('/', methods=['POST'])
+def handle():
+    data = request.get_json()
+    query = data.get('query', '')
+    answer = solve(query)
+    return jsonify({"output": answer})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000)
