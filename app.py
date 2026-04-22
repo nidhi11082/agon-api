@@ -9,33 +9,21 @@ def solve():
     query = data.get("query", "")
     q = query.lower()
 
-    # 🔥 STEP 1: Extract correct input number (robust)
-    
-    # Try patterns in priority order
-    patterns = [
-        r'input\s*number\s*:?\s*(\d+)',
-        r'number\s*is\s*(\d+)',
-        r'given\s*(\d+)',
-        r'number\s*:?\s*(\d+)'
-    ]
+    # 🔥 STEP 1: Extract ONLY the correct input number
 
-    num = None
+    # Get all numbers
+    nums = re.findall(r'\d+', q)
 
-    for p in patterns:
-        match = re.search(p, q)
-        if match:
-            num = int(match.group(1))
-            break
+    if not nums:
+        return jsonify({"output": ""})
 
-    # Fallback → take LAST number (ignore Rule 1,2,3)
-    if num is None:
-        nums = re.findall(r'\d+', q)
-        if nums:
-            num = int(nums[-1])
-        else:
-            num = 0
+    # 🔥 KEY IDEA:
+    # Rule numbers (1,2,3) are small and appear early
+    # Actual input number is usually the LARGEST number
 
-    # 🔥 STEP 2: Apply rules EXACTLY
+    num = max(map(int, nums))
+
+    # 🔥 STEP 2: Apply rules
 
     # Rule 1
     if num % 2 == 0:
@@ -51,13 +39,9 @@ def solve():
 
     # Rule 3
     if result % 3 == 0:
-        output = "FIZZ"
+        return jsonify({"output": "FIZZ"})
     else:
-        output = str(result)
-
-    # 🔥 STEP 3: EXACT RESPONSE FORMAT
-    return jsonify({"output": output})
-
+        return jsonify({"output": str(result)})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
