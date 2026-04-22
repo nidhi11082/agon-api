@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify
 import re
 import os
 
@@ -15,8 +15,8 @@ def solve():
     # sum even numbers
     even_sum = sum(n for n in numbers if n % 2 == 0)
 
-    # 🔥 RETURN RAW STRING (NOT JSON QUOTED)
-    return Response(str(even_sum), mimetype="text/plain")
+    # ✅ RETURN NUMBER (NOT STRING)
+    return jsonify({"output": even_sum})
 
 
 if __name__ == "__main__":
