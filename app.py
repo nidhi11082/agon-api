@@ -7,18 +7,16 @@ app = Flask(__name__)
 @app.route("/", methods=["POST"])
 def solve():
     data = request.get_json(force=True)
-    query = data.get("query", "").strip()
+    query = data.get("query", "")
 
-    # -------- LEVEL 4 EXACT MATCH (NO RISK) --------
-    if query == "Numbers: 2,5,8,11. Sum even numbers.":
-        return jsonify({"output": "10"})
-
-    # -------- SAFE GENERAL LOGIC --------
     q = query.lower()
 
+    # ---- LEVEL 4 (ROBUST) ----
     if "sum" in q and "even" in q:
         numbers = list(map(int, re.findall(r'\d+', q)))
         even_sum = sum(n for n in numbers if n % 2 == 0)
+
+        # 🔒 STRICT OUTPUT (NO EXTRA CHARACTERS)
         return jsonify({"output": str(even_sum)})
 
     return jsonify({"output": ""})
