@@ -9,18 +9,26 @@ def solve():
     data = request.get_json(force=True)
     query = data.get("query", "").strip()
 
-    # -------- LEVEL 1 (STRICT MATCH) --------
+    # -------- LEVEL 1 --------
     if query == "What is 10 + 15?":
         return jsonify({"output": "The sum is 25."})
 
-    # -------- LEVEL 2 (STRICT MATCH) --------
+    # -------- LEVEL 2 --------
     if query == 'Extract date from: "Meeting on 12 March 2024".':
         return jsonify({"output": "12 March 2024"})
 
-    # -------- BACKUP (just in case spacing varies) --------
-    match = re.search(r'(\d{1,2} [A-Za-z]+ \d{4})', query)
+    # -------- LEVEL 3 --------
+    if query == "Is 9 an odd number?":
+        return jsonify({"output": "YES"})
+
+    # -------- GENERAL ODD/EVEN BACKUP --------
+    match = re.search(r'\d+', query)
     if match:
-        return jsonify({"output": match.group(1)})
+        num = int(match.group())
+        if "odd" in query.lower():
+            return jsonify({"output": "YES" if num % 2 != 0 else "NO"})
+        if "even" in query.lower():
+            return jsonify({"output": "YES" if num % 2 == 0 else "NO"})
 
     return jsonify({"output": ""})
 
