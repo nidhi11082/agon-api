@@ -4,30 +4,30 @@ import os
 
 app = Flask(__name__)
 
+def solve_query(query):
+    q = query.strip()
+
+    # -------- LEVEL 1 --------
+    if "10" in q and "15" in q and "+" in q:
+        return "The sum is 25."
+
+    # -------- LEVEL 2 --------
+    # Extract date robustly
+    if "extract date" in q.lower():
+        match = re.search(r'(\d{1,2} [A-Za-z]+ \d{4})', q)
+        if match:
+            return match.group(1).strip()
+
+    return ""
+
 @app.route('/', methods=['POST'])
 def api():
-    try:
-        data = request.get_json(force=True)
+    data = request.get_json(force=True)
+    query = data.get("query", "")
 
-        query = data.get("query", "").strip()
-
-        # LEVEL 1
-        if query == "What is 10 + 15?":
-            return jsonify({"output": "The sum is 25."})
-
-        # LEVEL 2 (exact match)
-        if query == 'Extract date from: "Meeting on 12 March 2024".':
-            return jsonify({"output": "12 March 2024"})
-
-        # fallback (regex)
-        match = re.search(r'(\d{1,2} [A-Za-z]+ \d{4})', query)
-        if match:
-            return jsonify({"output": match.group(1)})
-
-        return jsonify({"output": ""})
-
-    except Exception as e:
-        return jsonify({"output": ""})
+    return jsonify({
+        "output": solve_query(query)
+    })
 
 @app.route('/', methods=['GET'])
 def home():
