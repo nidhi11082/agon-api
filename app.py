@@ -9,29 +9,26 @@ def solve():
     data = request.get_json(force=True)
     query = data.get("query", "").lower()
 
-    # Extract the input number (robust)
-    match = re.search(r'number\s*(\d+)', query)
-    if not match:
-        match = re.search(r'(\d+)', query)
-
-    if not match:
+    # STEP 1: Extract FIRST number (robust)
+    nums = re.findall(r'\d+', query)
+    if not nums:
         return {"output": ""}
+    
+    num = int(nums[0])
 
-    num = int(match.group(1))
-
-    # Rule 1
+    # STEP 2: Rule 1
     if num % 2 == 0:
         num = num * 2
     else:
         num = num + 10
 
-    # Rule 2
+    # STEP 3: Rule 2
     if num > 20:
         num = num - 5
     else:
         num = num + 3
 
-    # Rule 3
+    # STEP 4: Rule 3
     if num % 3 == 0:
         return {"output": "FIZZ"}
     else:
