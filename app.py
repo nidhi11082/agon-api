@@ -9,17 +9,24 @@ def solve():
     data = request.get_json(force=True)
     query = data.get("query", "")
 
-    # Extract correct (name, score) pairs ONLY
+    # STRICT pattern: Name scored Number
     matches = re.findall(r'([A-Z][a-z]+)\s+scored\s+(\d+)', query)
 
-    # If nothing matched, fallback (safety)
+    # If no matches, return empty safely
     if not matches:
         return {"output": ""}
 
     # Find highest scorer
-    winner = max(matches, key=lambda x: int(x[1]))[0]
+    winner = ""
+    max_score = -1
 
-    # Return EXACT expected format
+    for name, score in matches:
+        score = int(score)
+        if score > max_score:
+            max_score = score
+            winner = name
+
+    # RETURN EXACT FORMAT (CRITICAL)
     return {
         "output": winner
     }
