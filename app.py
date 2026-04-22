@@ -9,21 +9,33 @@ def solve():
     query = data.get("query", "")
     q = query.lower()
 
-    # 🔥 STEP 1: Extract all numbers
-    nums = list(map(int, re.findall(r'\d+', q)))
+    # 🔥 STEP 1: STRONG NUMBER EXTRACTION
 
-    if not nums:
-        return jsonify({"output": ""})
+    # Priority 1: explicit "input number"
+    match = re.search(r'input\s*number\s*:?\s*(\d+)', q)
 
-    # 🔥 STEP 2: Remove rule numbers (1,2,3) → keep real input
-    filtered = [n for n in nums if n > 3]
-
-    if filtered:
-        num = filtered[0]   # usually first valid input
+    if match:
+        num = int(match.group(1))
     else:
-        num = nums[-1]      # fallback
+        # Priority 2: numbers NOT near "rule"
+        candidates = []
+        for m in re.finditer(r'\d+', q):
+            n = int(m.group())
+            start = m.start()
+            context = q[max(0, start-8):start]
 
-    # 🔥 STEP 3: Apply rules exactly
+            if "rule" not in context:
+                candidates.append(n)
+
+        if candidates:
+            # take LAST valid candidate (most reliable)
+            num = candidates[-1]
+        else:
+            # fallback → largest number
+            nums = list(map(int, re.findall(r'\d+', q)))
+            num = max(nums) if nums else 0
+
+    # 🔥 STEP 2: APPLY RULES EXACTLY
 
     # Rule 1
     if num % 2 == 0:
@@ -43,7 +55,7 @@ def solve():
     else:
         output = str(result)
 
-    # 🔥 STEP 4: Exact response format
+    # 🔥 STEP 3: EXACT RESPONSE FORMAT
     return jsonify({"output": output})
 
 
