@@ -8,18 +8,16 @@ def solve():
     data = request.get_json()
     query = data.get("query", "").lower()
 
-    # 🔥 STEP 1: Remove rule descriptions completely
-    cleaned = re.sub(r'rule\s*\d+[^.]*\.', '', query)
+    # 🔥 STEP 1: Remove ALL rule sentences completely
+    query = re.sub(r'rule\s*\d+.*?(?=rule|$)', '', query)
 
-    # 🔥 STEP 2: Extract numbers
-    nums = list(map(int, re.findall(r'\d+', cleaned)))
+    # 🔥 STEP 2: Extract numbers AFTER cleaning
+    nums = re.findall(r'\d+', query)
 
     if nums:
-        num = nums[-1]
+        num = int(nums[-1])   # safest choice
     else:
-        # fallback
-        all_nums = list(map(int, re.findall(r'\d+', query)))
-        num = max(all_nums) if all_nums else 0
+        num = 0
 
     # 🔥 STEP 3: Apply rules
     if num % 2 == 0:
@@ -32,14 +30,11 @@ def solve():
     else:
         result += 3
 
-    # 🔥 STEP 4: STRICT OUTPUT ONLY
+    # 🔥 STEP 4: STRICT OUTPUT
     if result % 3 == 0:
-        output = "FIZZ"
+        return jsonify({"output": "FIZZ"})
     else:
-        output = str(result)
-
-    return jsonify({"output": output})
-
+        return jsonify({"output": str(result)})
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
