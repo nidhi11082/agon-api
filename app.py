@@ -9,25 +9,33 @@ def solve():
     query = data.get("query", "")
     q = query.lower()
 
-    # 🔥 STEP 1: Extract ALL numbers
-    nums = list(map(int, re.findall(r'\d+', q)))
+    num = None
 
-    if not nums:
-        return jsonify({"output": ""})
+    # 🔥 STEP 1: Extract number near keywords (MOST IMPORTANT)
+    patterns = [
+        r'input\s*number\s*:?\s*(\d+)',
+        r'number\s*:?\s*(\d+)',
+        r'given\s*(\d+)',
+        r'input\s*:?\s*(\d+)'
+    ]
 
-    # 🔥 STEP 2: Smart selection of input number
+    for p in patterns:
+        match = re.search(p, q)
+        if match:
+            num = int(match.group(1))
+            break
 
-    # Remove rule numbers (1,2,3)
-    candidates = [n for n in nums if n > 3]
+    # 🔥 STEP 2: Fallback (ignore rule numbers)
+    if num is None:
+        nums = list(map(int, re.findall(r'\d+', q)))
+        filtered = [n for n in nums if n > 3]
 
-    if candidates:
-        # choose LAST candidate (most reliable across hidden cases)
-        num = candidates[-1]
-    else:
-        # fallback → largest number
-        num = max(nums)
+        if filtered:
+            num = filtered[-1]
+        else:
+            num = nums[-1] if nums else 0
 
-    # 🔥 STEP 3: Apply rules EXACTLY
+    # 🔥 STEP 3: Apply rules
 
     if num % 2 == 0:
         result = num * 2
@@ -39,13 +47,12 @@ def solve():
     else:
         result += 3
 
-    if result % 3 == 0:
-        output = "FIZZ"
-    else:
-        output = str(result)
+    # 🔥 STEP 4: Output EXACT
 
-    # 🔥 STEP 4: Return EXACT format
-    return jsonify({"output": output})
+    if result % 3 == 0:
+        return jsonify({"output": "FIZZ"})
+    else:
+        return jsonify({"output": str(result)})
 
 
 if __name__ == "__main__":
