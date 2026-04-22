@@ -7,16 +7,19 @@ app = Flask(__name__)
 @app.route("/", methods=["POST"])
 def solve():
     data = request.get_json(force=True)
-    query = data.get("query", "")
+    query = data.get("query", "").strip()
 
-    # extract numbers
-    numbers = list(map(int, re.findall(r'\d+', query)))
+    # 🔒 Extract numbers safely
+    numbers = [int(x) for x in re.findall(r'\d+', query)]
 
-    # sum even numbers
-    even_sum = sum(n for n in numbers if n % 2 == 0)
+    # 🔒 Sum even numbers only
+    even_sum = 0
+    for n in numbers:
+        if n % 2 == 0:
+            even_sum += n
 
-    # ✅ RETURN NUMBER (NOT STRING)
-    return jsonify({"output": even_sum})
+    # 🔥 RETURN CLEAN STRING (NO EXTRA SPACES)
+    return jsonify({"output": f"{even_sum}"})
 
 
 if __name__ == "__main__":
