@@ -9,21 +9,21 @@ def solve():
     query = data.get("query", "")
     q = query.lower()
 
-    # 🔥 STEP 1: Extract ONLY the correct input number
-
-    # Get all numbers
-    nums = re.findall(r'\d+', q)
+    # 🔥 STEP 1: Extract all numbers
+    nums = list(map(int, re.findall(r'\d+', q)))
 
     if not nums:
         return jsonify({"output": ""})
 
-    # 🔥 KEY IDEA:
-    # Rule numbers (1,2,3) are small and appear early
-    # Actual input number is usually the LARGEST number
+    # 🔥 STEP 2: Remove rule numbers (1,2,3) → keep real input
+    filtered = [n for n in nums if n > 3]
 
-    num = max(map(int, nums))
+    if filtered:
+        num = filtered[0]   # usually first valid input
+    else:
+        num = nums[-1]      # fallback
 
-    # 🔥 STEP 2: Apply rules
+    # 🔥 STEP 3: Apply rules exactly
 
     # Rule 1
     if num % 2 == 0:
@@ -39,9 +39,13 @@ def solve():
 
     # Rule 3
     if result % 3 == 0:
-        return jsonify({"output": "FIZZ"})
+        output = "FIZZ"
     else:
-        return jsonify({"output": str(result)})
+        output = str(result)
+
+    # 🔥 STEP 4: Exact response format
+    return jsonify({"output": output})
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
