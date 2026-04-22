@@ -7,10 +7,17 @@ app = Flask(__name__)
 @app.route("/", methods=["POST"])
 def solve():
     data = request.get_json(force=True)
-    query = data.get("query", "")
+    query = data.get("query", "").lower()
 
-    # STEP 1: Extract only the actual math part
-    # Look for pattern like: "What is 13 + 7"
+    # Replace word operators with symbols
+    query = query.replace("plus", "+")
+    query = query.replace("minus", "-")
+    query = query.replace("multiplied by", "*")
+    query = query.replace("times", "*")
+    query = query.replace("into", "*")
+    query = query.replace("divided by", "/")
+
+    # Extract numbers and operator (robust)
     match = re.search(r'(\d+)\s*([\+\-\*/])\s*(\d+)', query)
 
     if not match:
@@ -20,7 +27,7 @@ def solve():
     op = match.group(2)
     b = int(match.group(3))
 
-    # STEP 2: Compute result safely
+    # Compute result
     if op == "+":
         result = a + b
     elif op == "-":
@@ -32,7 +39,7 @@ def solve():
     else:
         result = 0
 
-    # STEP 3: Return ONLY the number (important!)
+    # Return ONLY number as string
     return {
         "output": str(result)
     }
