@@ -3,23 +3,30 @@ import re
 
 app = Flask(__name__)
 
-def solve(query: str) -> str:
-    # Extract the input number from the query
-    match = re.search(r'input number[:\s]+(\d+)', query, re.IGNORECASE)
-    if not match:
-        # Try to find any number in the query
-        numbers = re.findall(r'\b(\d+)\b', query)
-        if not numbers:
-            return "unknown"
-        n = int(numbers[-1])
+@app.route("/", methods=["POST"])
+def solve():
+    data = request.get_json()
+    query = data.get("query", "")
+
+    # STEP 1: Extract the correct input number
+    match = re.search(r'input\s*number\s*(\d+)', query.lower())
+    
+    if match:
+        num = int(match.group(1))
     else:
-        n = int(match.group(1))
+        # fallback → take last number in query
+        nums = re.findall(r'\d+', query)
+        if not nums:
+            return jsonify({"output": ""})
+        num = int(nums[-1])
+
+    # STEP 2: Apply rules
 
     # Rule 1
-    if n % 2 == 0:
-        result = n * 2
+    if num % 2 == 0:
+        result = num * 2
     else:
-        result = n + 10
+        result = num + 10
 
     # Rule 2
     if result > 20:
@@ -29,16 +36,14 @@ def solve(query: str) -> str:
 
     # Rule 3
     if result % 3 == 0:
-        return "FIZZ"
+        answer = "FIZZ"
     else:
-        return str(result)
+        answer = str(result)
 
-@app.route('/', methods=['POST'])
-def handle():
-    data = request.get_json()
-    query = data.get('query', '')
-    answer = solve(query)
-    return jsonify({"output": answer})
+    # STEP 3: Return exact format
+    return jsonify({
+        "output": answer
+    })
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8000)
