@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 import re
 import os
 
@@ -9,15 +9,22 @@ def solve():
     data = request.get_json(force=True)
     query = data.get("query", "")
 
-    # Extract numbers
-    numbers = re.findall(r'\d+', query)
+    # Extract (Name, Score) pairs
+    matches = re.findall(r'([A-Z][a-z]+)\s+scored\s+(\d+)', query)
 
-    # Sum only even numbers
-    total = sum(int(n) for n in numbers if int(n) % 2 == 0)
+    # Find highest scorer
+    max_score = -1
+    winner = ""
 
-    # 🚨 CRITICAL: return EXACT string, no formatting issues
+    for name, score in matches:
+        score = int(score)
+        if score > max_score:
+            max_score = score
+            winner = name
+
+    # 🚨 CRITICAL: return ONLY name (no extra text)
     return {
-        "output": str(total)
+        "output": winner
     }
 
 if __name__ == "__main__":
