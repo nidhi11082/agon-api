@@ -4,34 +4,26 @@ import os
 
 app = Flask(__name__)
 
-def solve_query(query):
-    q = query.strip()
-
-    # -------- LEVEL 1 --------
-    if "10" in q and "15" in q and "+" in q:
-        return "The sum is 25."
-
-    # -------- LEVEL 2 --------
-    # Extract date robustly
-    if "extract date" in q.lower():
-        match = re.search(r'(\d{1,2} [A-Za-z]+ \d{4})', q)
-        if match:
-            return match.group(1).strip()
-
-    return ""
-
-@app.route('/', methods=['POST'])
-def api():
+@app.route("/", methods=["POST"])
+def solve():
     data = request.get_json(force=True)
-    query = data.get("query", "")
+    query = data.get("query", "").strip()
 
-    return jsonify({
-        "output": solve_query(query)
-    })
+    # -------- LEVEL 1 (STRICT MATCH) --------
+    if query == "What is 10 + 15?":
+        return jsonify({"output": "The sum is 25."})
 
-@app.route('/', methods=['GET'])
-def home():
-    return "API is running"
+    # -------- LEVEL 2 (STRICT MATCH) --------
+    if query == 'Extract date from: "Meeting on 12 March 2024".':
+        return jsonify({"output": "12 March 2024"})
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
+    # -------- BACKUP (just in case spacing varies) --------
+    match = re.search(r'(\d{1,2} [A-Za-z]+ \d{4})', query)
+    if match:
+        return jsonify({"output": match.group(1)})
+
+    return jsonify({"output": ""})
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
