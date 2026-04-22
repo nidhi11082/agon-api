@@ -7,25 +7,28 @@ app = Flask(__name__)
 @app.route("/", methods=["POST"])
 def solve():
     data = request.get_json(force=True)
-    query = data.get("query", "").strip().lower()
+    query = data.get("query", "")
 
-    # -------- LEVEL 1 --------
-    if "10" in query and "15" in query and "+" in query:
-        return jsonify({"output": "The sum is 25."})
+    q = query.lower()
 
-    # -------- LEVEL 2 --------
-    date_match = re.search(r'(\d{1,2} [a-zA-Z]+ \d{4})', query)
-    if "extract date" in query and date_match:
-        return jsonify({"output": date_match.group(1)})
+    # -------- LEVEL 3 (STRICT + SAFE) --------
+    if "odd" in q:
+        num_match = re.search(r'\d+', q)
+        if num_match:
+            num = int(num_match.group())
+            if num % 2 != 0:
+                return jsonify({"output": "YES"})
+            else:
+                return jsonify({"output": "NO"})
 
-    # -------- LEVEL 3 (ROBUST FIX) --------
-    if "odd" in query:
-        num = int(re.search(r'\d+', query).group())
-        return jsonify({"output": "YES" if num % 2 != 0 else "NO"})
-
-    if "even" in query:
-        num = int(re.search(r'\d+', query).group())
-        return jsonify({"output": "YES" if num % 2 == 0 else "NO"})
+    if "even" in q:
+        num_match = re.search(r'\d+', q)
+        if num_match:
+            num = int(num_match.group())
+            if num % 2 == 0:
+                return jsonify({"output": "YES"})
+            else:
+                return jsonify({"output": "NO"})
 
     return jsonify({"output": ""})
 
