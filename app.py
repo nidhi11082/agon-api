@@ -8,22 +8,30 @@ def solve():
     data = request.get_json()
     query = data.get("query", "").lower()
 
-    # 🔥 STEP 1: Extract ONLY correct input number
+    # 🔥 STEP 1: Extract ALL numbers
+    nums = list(map(int, re.findall(r'\d+', query)))
 
-    # Remove "rule X" parts completely
-    cleaned = re.sub(r'rule\s*\d+[^.]*', '', query)
+    if not nums:
+        return jsonify({"output": ""})
 
-    # Extract numbers after cleaning
-    nums = list(map(int, re.findall(r'\d+', cleaned)))
+    # 🔥 STEP 2: REMOVE rule numbers (1,2,3 ONLY when near "rule")
+    clean_nums = []
 
-    if nums:
-        num = nums[-1]   # reliable after cleaning
+    for match in re.finditer(r'\d+', query):
+        num = int(match.group())
+        start = match.start()
+        context = query[max(0, start-6):start]
+
+        if "rule" not in context:
+            clean_nums.append(num)
+
+    # 🔥 choose correct number
+    if clean_nums:
+        num = clean_nums[-1]
     else:
-        # fallback
-        all_nums = list(map(int, re.findall(r'\d+', query)))
-        num = max(all_nums) if all_nums else 0
+        num = max(nums)
 
-    # 🔥 STEP 2: Apply rules
+    # 🔥 STEP 3: Apply rules EXACTLY
 
     if num % 2 == 0:
         result = num * 2
@@ -35,13 +43,12 @@ def solve():
     else:
         result += 3
 
-    # 🔥 STEP 3: STRICT OUTPUT
+    # 🔥 STEP 4: STRICT OUTPUT (NO EXTRA TEXT)
 
     if result % 3 == 0:
         return jsonify({"output": "FIZZ"})
     else:
         return jsonify({"output": str(result)})
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)
